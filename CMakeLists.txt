@@ -2,12 +2,10 @@ cmake_minimum_required(VERSION 2.8)
 
 project(rotide)
 
-set(CURSES_USES_NCURSES TRUE)
-find_package(Curses REQUIRED)
+list(APPEND CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
 
-include_directories(${CURSES_INCLUDE_DIR})
-
-set(sources "src/rotide/main.c")
+include_directories("include")
+set(sources "src/rotide/main.cpp"
+            "src/rotide/sys/terminal.cpp")
 
 add_executable(rotide ${sources})
-target_link_libraries(rotide ${CURSES_LIBRARIES})
