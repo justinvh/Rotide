@@ -1,6 +1,7 @@
+#define _XOPEN_SOURCE_EXTENDED 1
+
 #include <locale.h>
-#include <curses.h>
-#include <ncurses.h>
+#include <ncursesw/ncurses.h>
 
 enum Mode {
     NORMAL,
@@ -21,10 +22,14 @@ int main(int argc, char** argv)
     cbreak();
 
     while (1) {
-        int c = get_wch();
+        wchar_t c;
+        cchar_t t;
+
+        get_wch(&c);
+        setcchar(&t, &c, 0, COLOR_PAIR(3), NULL);
 
         if (mode == INSERT) {
-            printw("%c", c);
+            add_wch(&t);
         } else if (mode == NORMAL) {
         }
 

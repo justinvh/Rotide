@@ -10,4 +10,4 @@ include_directories(${CURSES_INCLUDE_DIR})
 set(sources "src/rotide/main.c")
 
 add_executable(rotide ${sources})
-target_link_libraries(rotide ${CURSES_LIBRARIES} -lncursesw)
+target_link_libraries(rotide ${CURSES_LIBRARIES})
