@@ -14,7 +14,15 @@ enum TerminalError {
 
 enum class TerminalCode {
     reset,
-    get_position
+    cursor_get_position,
+    cursor_set_position,
+    cursor_up,
+    cursor_down,
+    cursor_forward,
+    cursor_back,
+    cursor_next_line,
+    cursor_prev_line,
+    cursor_set_col,
 };
 
 enum class TerminalMovement {
@@ -31,16 +39,25 @@ class Terminal {
 
 // High-level utility and common methods
 public:
+    Terminal();
     Cursor cursor(int row, int col);
     Cursor cursor();
+    void cursor_forward(int cols);
+    void cursor_back(int cols);
+    void cursor_up(int rows);
+    void cursor_down(int rows);
     void reset();
+    char getch();
 
 // Low-level methods that are not commonly used
 public:
     bool activate();
     int write(const std::string& data);
     int write(TerminalCode code);
+    int write(TerminalCode code, int arg1);
+    int write(TerminalCode code, int arg1, int arg2);
     int read();
+    wchar_t read_wchar();
 
 // Utilities for state preservation
 public:

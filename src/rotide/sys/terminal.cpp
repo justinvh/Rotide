@@ -1,4 +1,5 @@
-#include <map>
+#include <sstream>
+#include <iostream>
 
 #include <fcntl.h>
 #include <termios.h>
@@ -10,9 +11,35 @@
 
 namespace ro {
 
+Terminal::Terminal()
+{
+    activate();
+}
+
 Cursor Terminal::cursor(int row, int col)
 {
-    return Cursor(0, 0);
+    write(TerminalCode::cursor_set_position, row, col);
+    return cursor();
+}
+
+void Terminal::cursor_forward(int cols)
+{
+    write(TerminalCode::cursor_forward, cols);
+}
+
+void Terminal::cursor_back(int cols)
+{
+    write(TerminalCode::cursor_back, cols);
+}
+
+void Terminal::cursor_up(int rows)
+{
+    write(TerminalCode::cursor_up, rows);
+}
+
+void Terminal::cursor_down(int rows)
+{
+    write(TerminalCode::cursor_down, rows);
 }
 
 Cursor Terminal::cursor()
@@ -32,7 +59,7 @@ Cursor Terminal::cursor()
         }
 
         // Request cursor coordinates from the terminal.
-        retval = write(TerminalCode::get_position);
+        retval = write(TerminalCode::cursor_get_position);
         if (retval) {
             break;
         }
@@ -105,15 +132,68 @@ int Terminal::read()
     }
 }
 
+
+wchar_t Terminal::read_wchar()
+{
+    unsigned char buffer[5];
+    ssize_t n;
+    int k = 0;
+
+    while (1) {
+        n = ::read(tty, buffer, 1);
+        return buffer[0];
+    }
+}
+
 int Terminal::write(TerminalCode code)
 {
     if (code == TerminalCode::reset) {
         return write("\033c");
-    } else if (code == TerminalCode::get_position) {
+    } else if (code == TerminalCode::cursor_get_position) {
         return write("\033[6n");
     } else {
         return -1;
     }
+}
+
+int Terminal::write(TerminalCode code, int arg1)
+{
+    std::stringstream ss("\033[");
+
+    ss << arg1;
+
+    if (code == TerminalCode::cursor_up) {
+        ss << "A";
+    } else if (code == TerminalCode::cursor_down) {
+        ss << "B";
+    } else if (code == TerminalCode::cursor_forward) {
+        ss << "C";
+    } else if (code == TerminalCode::cursor_back) {
+        ss << "D";
+    } else if (code == TerminalCode::cursor_next_line) {
+        ss << "E";
+    } else if (code == TerminalCode::cursor_prev_line) {
+        ss << "F";
+    } else if (code == TerminalCode::cursor_set_col) {
+        ss << "F";
+    } else {
+        return -1;
+    }
+
+    return write(ss.str());
+}
+
+int Terminal::write(TerminalCode code, int arg1, int arg2)
+{
+    std::stringstream ss("\033[");
+
+    if (code == TerminalCode::cursor_set_position) {
+        ss << arg1 << ";" << arg2 << "H";
+    } else {
+        return -1;
+    }
+
+    return write(ss.str());
 }
 
 int Terminal::write(const std::string& data)
@@ -192,6 +272,7 @@ termios Terminal::push_state()
     } while (result == -1 && errno == EINTR);
 
     if (result == -1) {
+        std::cerr << "Failed to save current terminal settings" << std::endl;
         errno = saved_errno;
         return saved;
     }
@@ -204,6 +285,7 @@ termios Terminal::push_state()
     } while (result == -1 && errno == EINTR);
 
     if (result == -1) {
+        std::cerr << "Failed to save current terminal settings" << std::endl;
         errno = saved_errno;
         return saved;
     }
@@ -221,6 +303,14 @@ termios Terminal::pop_state()
     termios state = term_stack.back();
     term_stack.pop_back();
     return state;
+}
+
+char Terminal::getch()
+{
+    apply_termios(push_state());
+    char data = read();
+    apply_termios(pop_state());
+    return data;
 }
 
 }
