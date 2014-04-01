@@ -7,13 +7,15 @@
 
 int main()
 {
-    std::setlocale(LC_ALL, "en_US.UTF-8");
+
+    std::setlocale(LC_ALL, "");
+    std::cout << "LC_ALL: " << std::setlocale(LC_ALL, NULL) << std::endl;
+    std::cout << "LC_CTYPE: " << std::setlocale(LC_CTYPE, NULL) << std::endl;
 
     ro::Terminal terminal;
 
     while (true) {
-        char c = terminal.getch();
-        std::cout << c;
-        std::cout.flush();
+        char32_t c = terminal.getch();
+        std::wcout << (wchar_t) c << " -> " << int(c) << std::endl;
     };
 }

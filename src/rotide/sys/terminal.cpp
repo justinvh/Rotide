@@ -132,17 +132,27 @@ int Terminal::read()
     }
 }
 
-
-wchar_t Terminal::read_wchar()
+char32_t Terminal::read_wchar()
 {
-    unsigned char buffer[5];
-    ssize_t n;
-    int k = 0;
+    char32_t b1 = read();
 
-    while (1) {
-        n = ::read(tty, buffer, 1);
-        return buffer[0];
+    if (b1 < 0x007F) {
+        return b1;
+    } else if (b1 > 0x0080 && b1 <= 0x07FF) {
+        char32_t b2 = read();
+        return (b1 << 8) | b2;
+    } else if (b1 > 0x0800 && b1 <= 0xFFFF) {
+        char32_t b2 = read(),
+                 b3 = read();
+        return (b3 << 16) | (b2 << 8) | b1;
+    } else if (b1 > 0x10000 && b1 <= 0x1FFFFF) {
+        char32_t b2 = read(),
+                 b3 = read(),
+                 b4 = read();
+        return (b4 << 24) | (b3 << 16) | (b2 << 8) | b1;
     }
+
+    return b1;
 }
 
 int Terminal::write(TerminalCode code)
@@ -305,10 +315,10 @@ termios Terminal::pop_state()
     return state;
 }
 
-char Terminal::getch()
+char32_t Terminal::getch()
 {
     apply_termios(push_state());
-    char data = read();
+    char32_t data = read_wchar();
     apply_termios(pop_state());
     return data;
 }
