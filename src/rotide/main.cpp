@@ -15,7 +15,6 @@ int main()
     ro::Terminal terminal;
 
     while (true) {
-        char32_t c = terminal.getch();
-        std::wcout << (wchar_t) c << " -> " << int(c) << std::endl;
+        std::cout << terminal.getch() << std::endl;
     };
 }

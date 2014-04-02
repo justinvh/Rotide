@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <codecvt>
 
 #include <rotide/sys/terminal.hpp>
 
@@ -132,27 +133,30 @@ int Terminal::read()
     }
 }
 
-char32_t Terminal::read_wchar()
+Unicode Terminal::read_wchar()
 {
-    char32_t b1 = read();
+    Unicode bytes;
+    static unsigned short mask[] = {192, 224, 240};
 
-    if (b1 < 0x007F) {
-        return b1;
-    } else if (b1 > 0x0080 && b1 <= 0x07FF) {
-        char32_t b2 = read();
-        return (b1 << 8) | b2;
-    } else if (b1 > 0x0800 && b1 <= 0xFFFF) {
-        char32_t b2 = read(),
-                 b3 = read();
-        return (b3 << 16) | (b2 << 8) | b1;
-    } else if (b1 > 0x10000 && b1 <= 0x1FFFFF) {
-        char32_t b2 = read(),
-                 b3 = read(),
-                 b4 = read();
-        return (b4 << 24) | (b3 << 16) | (b2 << 8) | b1;
+    unsigned short i, j;
+
+    bytes[0] = read();
+    if (bytes[0] == EOF) {
+        return bytes;
     }
 
-    return b1;
+    i = 0;
+    if ((bytes[0] & mask[0]) == mask[0]) i++;
+    if ((bytes[0] & mask[1]) == mask[1]) i++;
+    if ((bytes[0] & mask[2]) == mask[2]) i++;
+
+    j = 0;
+    while (j < i) {
+        j++;
+        bytes[j] = read();
+    }
+
+    return bytes;
 }
 
 int Terminal::write(TerminalCode code)
@@ -315,10 +319,10 @@ termios Terminal::pop_state()
     return state;
 }
 
-char32_t Terminal::getch()
+Unicode Terminal::getch()
 {
     apply_termios(push_state());
-    char32_t data = read_wchar();
+    auto data = read_wchar();
     apply_termios(pop_state());
     return data;
 }

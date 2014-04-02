@@ -4,6 +4,9 @@
 #include <termios.h>
 #include <vector>
 #include <string>
+#include <memory>
+
+#include <rotide/sys/unicode.hpp>
 
 namespace ro {
 
@@ -47,7 +50,7 @@ public:
     void cursor_up(int rows);
     void cursor_down(int rows);
     void reset();
-    char32_t getch();
+    Unicode getch();
 
 // Low-level methods that are not commonly used
 public:
@@ -57,7 +60,7 @@ public:
     int write(TerminalCode code, int arg1);
     int write(TerminalCode code, int arg1, int arg2);
     int read();
-    char32_t read_wchar();
+    Unicode read_wchar();
 
 // Utilities for state preservation
 public:
