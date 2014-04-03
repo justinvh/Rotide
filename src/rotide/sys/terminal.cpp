@@ -172,9 +172,9 @@ int Terminal::write(TerminalCode code)
 
 int Terminal::write(TerminalCode code, int arg1)
 {
-    std::stringstream ss("\033[");
+    std::stringstream ss;
 
-    ss << arg1;
+    ss << "\033[" << arg1;
 
     if (code == TerminalCode::cursor_up) {
         ss << "A";
@@ -199,7 +199,9 @@ int Terminal::write(TerminalCode code, int arg1)
 
 int Terminal::write(TerminalCode code, int arg1, int arg2)
 {
-    std::stringstream ss("\033[");
+    std::stringstream ss;
+
+    ss << "\033[";
 
     if (code == TerminalCode::cursor_set_position) {
         ss << arg1 << ";" << arg2 << "H";

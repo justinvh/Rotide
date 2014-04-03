@@ -13,8 +13,9 @@ int main()
     std::cout << "LC_CTYPE: " << std::setlocale(LC_CTYPE, NULL) << std::endl;
 
     ro::Terminal terminal;
+    terminal.reset();
 
     while (true) {
-        std::cout << terminal.getch() << std::endl;
+        terminal.write(terminal.getch().data);
     };
 }
