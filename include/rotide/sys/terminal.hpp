@@ -55,10 +55,13 @@ public:
 // Low-level methods that are not commonly used
 public:
     bool activate();
+    int write(char c);
     int write(const std::string& data);
+    int write(const Unicode& unicode);
     int write(TerminalCode code);
     int write(TerminalCode code, int arg1);
     int write(TerminalCode code, int arg1, int arg2);
+    void force_write_delay(int time) { delay = time; }
     int read();
     Unicode read_wchar();
 
@@ -71,6 +74,7 @@ public:
 public:
     std::vector<termios> term_stack;
     int tty;
+    int delay;
 };
 
 }

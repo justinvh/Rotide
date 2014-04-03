@@ -2,6 +2,7 @@
 #define ROTIDE_SYS_UNICODE_HPP
 
 #include <cstdlib>
+#include <iostream>
 #include <vector>
 
 namespace ro {

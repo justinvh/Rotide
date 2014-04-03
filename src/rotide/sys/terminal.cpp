@@ -1,5 +1,7 @@
 #include <sstream>
 #include <iostream>
+#include <thread>
+#include <chrono>
 
 #include <fcntl.h>
 #include <termios.h>
@@ -14,6 +16,7 @@ namespace ro {
 
 Terminal::Terminal()
 {
+    delay = 0;
     activate();
 }
 
@@ -212,6 +215,18 @@ int Terminal::write(TerminalCode code, int arg1, int arg2)
     return write(ss.str());
 }
 
+int Terminal::write(char k)
+{
+    int n = ::write(tty, &k, 1);
+
+    if (delay) {
+        std::chrono::milliseconds dura(delay);
+        std::this_thread::sleep_for(dura);
+    }
+
+    return n;
+}
+
 int Terminal::write(const std::string& data)
 {
     const char* head = data.c_str();
@@ -227,6 +242,36 @@ int Terminal::write(const std::string& data)
         } else if (errno != EINTR && errno != EAGAIN && errno != EWOULDBLOCK) {
             return errno;
         }
+    }
+
+    if (delay) {
+        std::chrono::milliseconds dura(delay);
+        std::this_thread::sleep_for(dura);
+    }
+
+    return 0;
+}
+
+int Terminal::write(const Unicode& unicode)
+{
+    const char* head = unicode.data;
+    const char* const tail = head + 4;
+    ssize_t n;
+
+    while (head < tail) {
+        n = ::write(tty, head, (size_t)(tail - head));
+        if (n > (ssize_t) 0) {
+            head += n;
+        } else if (n != (ssize_t) -1) {
+            return EIO;
+        } else if (errno != EINTR && errno != EAGAIN && errno != EWOULDBLOCK) {
+            return errno;
+        }
+    }
+
+    if (delay) {
+        std::chrono::milliseconds dura(delay);
+        std::this_thread::sleep_for(dura);
     }
 
     return 0;
